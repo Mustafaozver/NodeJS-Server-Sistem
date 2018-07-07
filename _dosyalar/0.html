@@ -1,0 +1,34 @@
+<!DOCTYPE HTML>
+<html lang="tr-TR" dir="ltr" xmlns="http://www.w3.org/1999/xhtml">
+ <head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta http-equiv="Content-Type" content="text/html; charset=windows-1254" />
+  <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-9" />
+  <meta http-equiv="Content-Type" content="text/html; charset=x-mac-turkish" />
+  <meta name="generator" content="ATA 1.8" />
+  <meta name="title" content="Uzak Kontrol" />
+  <meta name="description" content="Nodejs+Ultrasonik Kart Uzak kontrol paneli" />
+  <meta name="keywords" content="" />
+  <meta name="author" content="" />
+  <meta name="owner" content="Mustafa Ã–ZVER" />
+  <meta name="copyright" content="(c) 2017" />
+  <title>Uzak Kontrol Paneli</title>
+  <script src="annyang.min.js"></script>
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
+  <script>
+if (annyang) {
+ var cmds = {};
+ cmds["oku"] = function() {Ultrasonar.veri_gonder([8,0,1,7]);};// ses kontrol
+ cmds["kapat"] = function() {Ultrasonar.komutlar(4);};
+ 
+ annyang.setLanguage("tr");
+ annyang.addCommands(cmds);
+ annyang.start();
+}
+  </script>
+</head>
+ <body>
+  <script>setTimeout("Ultrasonar.kurulum();",1000);</script>
+ </body>
+</html>

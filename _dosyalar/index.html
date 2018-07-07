@@ -1,0 +1,737 @@
+<!DOCTYPE HTML>
+<!-- Ultrasonar A.Å NodeJS PC HTML ArayÃ¼zÃ¼ -->
+<html lang="tr-TR" dir="ltr" xmlns="http://www.w3.org/1999/xhtml">
+ <head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta http-equiv="Content-Type" content="text/html; charset=windows-1254" />
+  <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-9" />
+  <meta http-equiv="Content-Type" content="text/html; charset=x-mac-turkish" />
+  <meta name="generator" content="ATA 1.8" />
+  <meta name="title" content="Uzak Kontrol" />
+  <meta name="description" content="Nodejs+Ultrasonik Kart Uzak kontrol paneli" />
+  <meta name="keywords" content="" />
+  <meta name="author" content="" />
+  <meta name="owner" content="Mustafa Ã–ZVER" />
+  <meta name="copyright" content="(c) 2017" />
+  <title>Uzak Kontrol Paneli</title>
+  <script src="annyang.min.js"></script>
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
+  <script>
+if (annyang) {
+ var cmds = {};
+ cmds["oku"] = function() {Ultrasonar.veri_gonder([8,0,1,7]);};// ses kontrol
+ cmds["led yak"] = function() {Ultrasonar.veri_gonder([1,0,1,3]);};
+ cmds["ses ver"] = function() {Ultrasonar.veri_gonder([1,0,1,7]);};
+ cmds["tablo bir"] = function() {Ultrasonar.arayuz.tab(0)};
+ cmds["tablo iki"] = function() {Ultrasonar.arayuz.tab(1)};
+ cmds["tablo üç"] = function() {Ultrasonar.arayuz.tab(2)};
+ cmds["tablo dört"] = function() {Ultrasonar.arayuz.tab(3)};
+ cmds["tablo beş"] = function() {Ultrasonar.arayuz.tab(4)};
+ cmds["kapat"] = function() {Ultrasonar.komutlar(4);};
+ 
+ //
+ 
+ annyang.setLanguage("tr");
+ annyang.addCommands(cmds);
+ annyang.start();
+}
+  </script>
+<script>
+var Ultrasonar = {};
+Ultrasonar.periyot = 50;
+Ultrasonar.kontrol = function() {
+ var data = $.get(window.location.href + "veri_665", function(data,sts) {
+  Ultrasonar.Nodejs_kon(data);
+ });
+ setTimeout("Ultrasonar.kontrol();",Ultrasonar.periyot);
+};
+Ultrasonar.kurulum = function() {
+ Ultrasonar.kontrol();
+ Ultrasonar.grafikislem.tuval = document.all.tuval;
+ Ultrasonar.grafikislem.gco = Ultrasonar.grafikislem.tuval.getContext("2d");
+ Ultrasonar.grafikislem.cizim.doc = document.all.tuval2;
+ Ultrasonar.grafikislem.cizim.eoid = Ultrasonar.grafikislem.cizim.doc.getContext("2d");
+ Ultrasonar.arayuz.bildiri("<font color=\"lime\">ArayÃ¼z sistemi baÅŸlatÄ±ldÄ±.</font>");
+ window.onkeypress = Ultrasonar.klavye_kontrol.basilma;
+ Ultrasonar.grafikislem.cizim.ciz();
+ Ultrasonar.arayuz.tab(0);
+ geciciler__(); //
+};
+Ultrasonar.komutlar = function(n) {
+ switch(n) {
+  default:break;
+  case 4:
+   Ultrasonar.arayuz.bildiri("<font color=\"gray\">Kapat komutu gÃ¶nderildi.</font>");
+ }
+ $.get(window.location.href + "/?gorev=" + n, function(data, status){alert("Data: " + data + "\nStatus: " + status);});
+};
+
+Ultrasonar.klavye_kontrol = {};
+Ultrasonar.klavye_kontrol.tab = -1;
+Ultrasonar.klavye_kontrol.basilma = function(e) {
+ e = e || window.event;
+ var t_k = e.keyCode;
+ var t_ = String.fromCharCode(t_k).toUpperCase() + "-" + Ultrasonar.klavye_kontrol.tab;
+ //console.log("Tuş : " + t_ + " - " + t_k);
+ //ekle__();
+ switch ("K" + t_k + "-" + Ultrasonar.klavye_kontrol.tab) {
+  default:break;
+  // Enter tuşu
+  case "K13-1":
+   Ultrasonar.ayar_gonder();
+   break;
+  case "K13-0":
+   Ultrasonar.veri_gonder([1,0,1,7]);
+   setTimeout("Ultrasonar.veri_gonder([1,0,1,0]);",3000);
+   break;
+ }
+ switch (t_) {
+  default:break;
+  // 3d grafik acisal kontroller
+  case "8-3":
+   Ultrasonar.grafikislem.cizim.goz.aci[0]++;
+   Ultrasonar.grafikislem.cizim.ciz();
+   break;
+  case "2-3":
+   Ultrasonar.grafikislem.cizim.goz.aci[0]--;
+   Ultrasonar.grafikislem.cizim.ciz();
+   break;
+  case "6-3":
+   Ultrasonar.grafikislem.cizim.goz.aci[1]++;
+   Ultrasonar.grafikislem.cizim.ciz();
+   break;
+  case "4-3":
+   Ultrasonar.grafikislem.cizim.goz.aci[1]--;
+   Ultrasonar.grafikislem.cizim.ciz();
+   break;
+   // 3d grafik konumsal kontroller
+  case "Q-3":
+   Ultrasonar.grafikislem.cizim.goz.konum[0] += Ultrasonar.grafikislem.cizim.goz.konumsal_hiz;
+   Ultrasonar.grafikislem.cizim.ciz();
+   break;
+  case "A-3":
+   Ultrasonar.grafikislem.cizim.goz.konum[0] -= Ultrasonar.grafikislem.cizim.goz.konumsal_hiz;
+   Ultrasonar.grafikislem.cizim.ciz();
+   break;
+  case "W-3":
+   Ultrasonar.grafikislem.cizim.goz.konum[1] += Ultrasonar.grafikislem.cizim.goz.konumsal_hiz;
+   Ultrasonar.grafikislem.cizim.ciz();
+   break;
+  case "S-3":
+   Ultrasonar.grafikislem.cizim.goz.konum[1] -= Ultrasonar.grafikislem.cizim.goz.konumsal_hiz;
+   Ultrasonar.grafikislem.cizim.ciz();
+   break;
+  case "E-3":
+   Ultrasonar.grafikislem.cizim.goz.konum[2] += Ultrasonar.grafikislem.cizim.goz.konumsal_hiz;
+   Ultrasonar.grafikislem.cizim.ciz();
+   break;
+  case "D-3":
+   Ultrasonar.grafikislem.cizim.goz.konum[2] -= Ultrasonar.grafikislem.cizim.goz.konumsal_hiz;
+   Ultrasonar.grafikislem.cizim.ciz();
+   break;
+  case "R-3":
+   Ultrasonar.grafikislem.cizim.goz.yaklas(5);
+   Ultrasonar.grafikislem.cizim.ciz();
+   break;
+  case "F-3":
+   Ultrasonar.grafikislem.cizim.goz.yaklas(-5);
+   Ultrasonar.grafikislem.cizim.ciz();
+   break;
+  // 2D
+  case "A-2":
+   Ultrasonar.veri_gonder([8,1,1,1]);
+   break;
+ }
+};
+
+Ultrasonar.Nodejs_kon = function(data) {
+ var veri = eval("var data = " + data + ";data");
+ if (veri.Hata) {
+  Ultrasonar.arayuz.bildiri("<font color=\"red\">Hata : <br/>" + veri.Mesaj + "</font>");
+  return;
+ }
+ //if (veri.son=="") console.log(veri);
+ var veri_kume = veri.son.join(",").split(",,")[1].split(",");
+ switch(""+veri_kume[3]) {
+  case "18":
+   Ultrasonar.veri_gonder([veri_kume[4],1,1]);
+   break;
+  case "4":
+   Ultrasonar.grafikislem.adcveri = veri_kume;
+   Ultrasonar.grafikislem.ciz();
+   break;
+  case "16": // Enkoder
+   if (veri_kume[10] != (""+("M".charCodeAt(0)))) return;
+   var x = eval(veri_kume[4]) + 256*eval(veri_kume[5]);
+   var y = eval(veri_kume[6]) + 256*eval(veri_kume[7]);
+   var z = eval(veri_kume[8]) + 256*eval(veri_kume[9]);
+   
+   Ultrasonar.grafikislem.adcveri = [];
+   for (var i=0;i<4500;i++) Ultrasonar.grafikislem.adcveri.push(veri_kume[10+i]);
+   Ultrasonar.grafikislem.ciz();
+   Ultrasonar.arayuz.bildiri("X : <font color=\"yellow\">" + x + "</font> , Y : <font color=\"yellow\">" + y + "</font> , Z : <font color=\"yellow\">" + z + "</font>");
+   //Ultrasonar.veri_gonder([8,1,1,1]);
+   break;
+  case "17":
+  var arr = [];
+   for (var i=0;i<6;i++) arr.push(eval(veri_kume[i+4]));
+   Ultrasonar.enkoder.anlik_degeral(arr);
+   Ultrasonar.grafikislem.adcveri = [];
+   for (var i=6;i<4500;i++) Ultrasonar.grafikislem.adcveri.push(veri_kume[4+i]);
+   
+   Ultrasonar.grafikislem.ciz();
+  break;
+  case "5":
+   //alert();
+  break;
+  default:
+   Ultrasonar.arayuz.bildiri(veri_kume);
+   break;
+ }
+};
+// [okuma,yazma , veri...]
+Ultrasonar.veri_gonder = function(veri) {
+ var metin = "";
+ for(var i=0;i<veri.length;i++) metin += hexcev(veri[i]);
+ Ultrasonar.arayuz.bildiri("Veri Gönderildi : " + metin);
+ $.get(window.location.href + "/?gorev=2,O" + veri.join("_"), function(data, sts){
+  Ultrasonar.arayuz.bildiri("<font color=\"lime\">Veri alma baÅŸarÄ±lÄ± : <b>" + sts + "</b></font>");
+ });
+};
+
+Ultrasonar.ayar_gonder = function() {
+ var ayar_deg = [5,1,1,0];
+ var ornek = 0;
+ 
+ ornek = eval(document.all.ornekboyutu.value);
+ ayar_deg.push(ornek%256);
+ ornek -= ornek%256;
+ ayar_deg.push(ornek/256);
+ ornek = eval(document.all.ornekbaslangic.value);
+ ayar_deg.push(ornek%256);
+ ornek -= ornek%256;
+ ayar_deg.push(ornek/256);
+ ornek = eval(document.all.ornekbitis.value);
+ ayar_deg.push(ornek%256);
+ ornek -= ornek%256;
+ ayar_deg.push(ornek/256);
+
+ ayar_deg.push(document.all.hamveri.checked?1:0);
+ ayar_deg.push(eval(document.all.rectifier.value));
+ ayar_deg.push(eval(document.all.trigger.value));
+ ayar_deg.push(eval(document.all.frekanssec.value));
+ ayar_deg.push(eval(document.all.kanalsec.value));
+ ayar_deg.push(eval(document.all.zarfkatsayi.value));
+ ayar_deg.push(eval(document.all.prf.value));
+ ayar_deg.push(document.all.filtre.checked?1:0);
+ ayar_deg.push(eval(document.all.triglevel.value));
+ ayar_deg.push(eval(document.all.lnp.value));
+ ayar_deg.push(eval(document.all.vga.value));
+ ayar_deg.push(eval(document.all.darbefrekansi.value));
+ ayar_deg.push(eval(document.all.darbesayisi.value));
+ ayar_deg.push(eval(document.all.d_cikiskanali.value));
+ ayar_deg.push(eval(document.all.hvgenlik.value));
+ ayar_deg.push(eval(document.all.d_okumakanali.value));
+ ayar_deg.push(eval(document.all.k_bitkazanci.value));
+ ayar_deg.push(eval(document.all.uyontem.value));
+ Ultrasonar.veri_gonder(ayar_deg);
+};
+Ultrasonar.enkoder = {};
+Ultrasonar.enkoder.anlik_degeral = function(arr) {
+ //if (arr[0] != "X".charCodeAt(0)) return;
+ document.all.anlik_deger_x.value = eval(arr[0])+eval(arr[1])*256;
+ document.all.anlik_deger_y.value = eval(arr[2])+eval(arr[3])*256;
+ document.all.anlik_deger_z.value = eval(arr[4])+eval(arr[5])*256;
+};
+Ultrasonar.enkoder.adim_sayisi_kur = function() { // [17,1,0,'X'] = gönder
+ var ayar_deg = [17,1,1,"kX".charCodeAt(0)]; // [17,1,1,...] = kur
+ var ornek = 0;
+
+ ornek = (""+(eval(document.all.enk_sinir_x.value)/eval(document.all.adim_sayisi_x.value))).split(".")[0];
+ ayar_deg.push(ornek%256);
+ ornek -= ornek%256;
+ ayar_deg.push(ornek/256);
+ 
+ ornek = (""+(eval(document.all.enk_sinir_y.value)/eval(document.all.adim_sayisi_y.value))).split(".")[0];
+ ayar_deg.push(ornek%256);
+ ornek -= ornek%256;
+ ayar_deg.push(ornek/256);
+ 
+ ornek = (""+(eval(document.all.enk_sinir_z.value)/eval(document.all.adim_sayisi_z.value))).split(".")[0];
+ ayar_deg.push(ornek%256);
+ ornek -= ornek%256;
+ ayar_deg.push(ornek/256);
+ 
+ ///////////////////////////////////
+ 
+ ornek = eval(document.all.enk_sinir_x.value);
+ ayar_deg.push(ornek%256);
+ ornek -= ornek%256;
+ ayar_deg.push(ornek/256);
+ 
+ ornek = eval(document.all.enk_sinir_y.value);
+ ayar_deg.push(ornek%256);
+ ornek -= ornek%256;
+ ayar_deg.push(ornek/256);
+ 
+ ornek = eval(document.all.enk_sinir_z.value);
+ ayar_deg.push(ornek%256);
+ ornek -= ornek%256;
+ ayar_deg.push(ornek/256);
+ 
+ Ultrasonar.veri_gonder(ayar_deg);
+ //console.log();
+};
+
+Ultrasonar.grafikislem = {};
+Ultrasonar.grafikislem.aralik = 1;//0.15;
+Ultrasonar.grafikislem.carpan = -1.5; // -0.7
+Ultrasonar.grafikislem.basdeger = 390; // 200
+Ultrasonar.grafikislem.tuval = false;
+Ultrasonar.grafikislem.gco = false;
+Ultrasonar.grafikislem.adcveri = [];
+
+Ultrasonar.grafikislem.ciz = function() {
+ Ultrasonar.grafikislem.gco.clearRect(0,0,Ultrasonar.grafikislem.tuval.width,Ultrasonar.grafikislem.tuval.height);
+ Ultrasonar.grafikislem.gco.moveTo(0,0);
+ Ultrasonar.grafikislem.gco.beginPath();
+ for (var i=0;i<Ultrasonar.grafikislem.adcveri.length;i++) {
+  Ultrasonar.grafikislem.gco.lineTo(i*this.aralik, this.adcveri[i]*this.carpan + this.basdeger);
+ }
+ Ultrasonar.grafikislem.gco.lineWidth = 1;
+ Ultrasonar.grafikislem.gco.strokeStyle = "#80FFA0";
+ Ultrasonar.grafikislem.gco.stroke();
+ //Ultrasonar.grafikislem.gco.closePath();
+ //Ultrasonar.grafikislem.gco.fill();
+};
+
+
+Ultrasonar.arayuz = {};
+Ultrasonar.arayuz.bildiri_temizle = function() {
+ document.all.bildiri.innerHTML = "";
+ console.clear();
+};
+Ultrasonar.arayuz.bildiri = function(bldr) {
+ bldr = (new Date()).getTime() + " : " + bldr;
+ console.log(bldr);
+ document.all.bildiri.innerHTML += "<br/>" + bldr;
+ document.all.bildiri.scrollTop = document.all.bildiri.scrollHeight;
+};
+Ultrasonar.arayuz.bildiri_temizle = function() {
+ document.all.bildiri.innerHTML = "";
+};
+Ultrasonar.arayuz.tab_sayisi = 5;
+Ultrasonar.arayuz.tab = function(say) {
+ for (var i=0;i<Ultrasonar.arayuz.tab_sayisi;i++) eval("document.all.tab_" + i).style.display = (say==i)?"block":"none";
+ Ultrasonar.klavye_kontrol.tab = say;
+ switch (say) {
+  default:break;
+ }
+};
+
+Ultrasonar.grafikislem._3D = {};
+Ultrasonar.grafikislem._3D.STO = null;
+Ultrasonar.grafikislem._3D.STO_prm = [0,100];//////////
+Ultrasonar.grafikislem._3D.basla = function(omin,omax) {
+ Ultrasonar.grafikislem._3D.STO_prm = [omin,omax];
+ var data = $.get(window.location.href + "?gorev=6,W," + omin + "," + omax + "", function(data,sts) {
+  switch (Ultrasonar.grafikislem.cizim.ciz(data)) {
+   case 1:
+   Ultrasonar.grafikislem._3D.STO_prm[0] = Ultrasonar.grafikislem._3D.STO_prm[1];
+   Ultrasonar.grafikislem._3D.STO_prm[1] += 100;
+   break;
+   
+   default:break;
+  }
+  Ultrasonar.grafikislem._3D.STO = setTimeout("Ultrasonar.grafikislem._3D.basla("+Ultrasonar.grafikislem._3D.STO_prm+");",50);
+ });
+};
+Ultrasonar.analiz = {};
+Ultrasonar.analiz.nitelik = function(dizi) {
+ var nesne = {};
+ nesne.EB = 0;
+ nesne.EK = 0; // sil
+ for (var i=0;i<dizi.length;i++) {
+  if (dizi[nesne.EB] <= dizi[i]) nesne.EB = i;
+  if (dizi[nesne.EK] >= dizi[i]) nesne.EK = i;
+ }
+ nesne.I = -1;
+ nesne.S = -1;
+ nesne.O = 0;
+ var sinir_ = (dizi[nesne.EK] + dizi[nesne.EB])/2;
+ var boyut = Math.abs(nesne.EB-nesne.EK);
+ for (var i=0;i<boyut*2;i++) {
+  nesne.O += dizi[i]/boyut/2;
+  if (i != dizi.length-1) {
+   if (dizi[i] <= sinir_ && dizi[i+1] >= sinir_) {
+    if (nesne.I == -1) nesne.I = i;
+	else nesne.S = i;
+   } else if (dizi[i] >= sinir_ && dizi[i+1] <= sinir_) {
+    if (nesne.I == -1) nesne.I = i;
+	else nesne.S = i;
+   }
+  }
+ }
+ Ultrasonar.analiz.F = (nesne.S - nesne.I + 1)/Math.PI;
+ Ultrasonar.analiz.B = nesne.O;
+ return nesne;
+};
+Ultrasonar.analiz.F = 180/Math.PI; // ttt(0, 180/Math.PI,dizi_); Math.sin için
+Ultrasonar.analiz.B = 0;
+Ultrasonar.analiz.genlik = function(dizi, ort, fre) {
+ ort = ort?ort:Ultrasonar.analiz.B;
+ fre = fre?fre:Ultrasonar.analiz.F;
+ var veri = [];
+ var gdv_0;
+ for (var i=0;i<dizi.length;i++) {
+  var gdv_1 = dizi[i] - ort;
+  if (i==0) gdv_0 = dizi[0] - ort;
+  else gdv_0 = (dizi[i] - dizi[i-1])*fre;
+  veri.push(Math.sqrt(gdv_1*gdv_1 + gdv_0*gdv_0));
+ }
+ return veri;
+};
+
+Ultrasonar.grafikislem.cizim = {};
+Ultrasonar.grafikislem.cizim.deg2rad = function(oNum) {return oNum*180/Math.PI;};
+Ultrasonar.grafikislem.cizim.goz = {};
+Ultrasonar.grafikislem.cizim.goz.konum = [0,0,0];
+Ultrasonar.grafikislem.cizim.goz.konumsal_hiz = 5;
+Ultrasonar.grafikislem.cizim.goz.aci = [67,0];
+Ultrasonar.grafikislem.cizim.goz.yaklas = function(a) { 
+ this.konum[0] -= a*this.konumsal_hiz*Math.sin(this.aci[1]*Math.PI/180)*Math.sin(this.aci[0]*Math.PI/180);
+ this.konum[1] -= a*this.konumsal_hiz*Math.cos(this.aci[1]*Math.PI/180)*Math.sin(this.aci[0]*Math.PI/180);
+ this.konum[2] += a*this.konumsal_hiz*Math.cos(this.aci[0]*Math.PI/180);
+};
+
+Ultrasonar.grafikislem.cizim.kalinlik = 1.5;
+/////////////////////////////////////////////////////
+var model = [];
+var hata = [];
+ 
+function cizim_kup(a) {
+ AddPoint(a,a,a);AddPoint(-a,a,a);AddPoint(-a,-a,a);AddPoint(a,-a,a); // Küp çizim
+ AddPoint(a,a,a);AddPoint(a,a,-a);AddPoint(-a,a,-a);AddPoint(-a,-a,-a);
+ AddPoint(a,-a,-a);AddPoint(a,a,-a);AddPoint(a,-a,-a);AddPoint(a,-a,a);
+ AddPoint(-a,-a,a);AddPoint(-a,-a,-a);AddPoint(-a,a,-a);AddPoint(-a,a,a);
+}
+
+function Tetrahedron(a) { // 4 yüzlü AddPoint(a,a,a);AddPoint(-a,a,-a);AddPoint(a,-a,-a); AddPoint(-a,a,-a);AddPoint(-a,-a,a);AddPoint(a,-a,-a); AddPoint(a,a,a);AddPoint(a,-a,-a);AddPoint(-a,-a,a); AddPoint(a,a,a);AddPoint(-a,-a,a);AddPoint(-a,a,-a);
+}
+
+function Octahedron(a) { // 8 yüzlü
+ var b = a*1.33; AddPoint(-a,0,a);AddPoint(-a,0,-a);AddPoint(0,b,0); AddPoint(-a,0,-a);AddPoint(a,0,-a);AddPoint(0,b,0); AddPoint(a,0,-a);AddPoint(a,0,a);AddPoint(0,b,0); AddPoint(a,0,a);AddPoint(-a,0,a);AddPoint(0,b,0); AddPoint(a,0,-a);AddPoint(-a,0,-a);AddPoint(0,-b,0); AddPoint(-a,0,-a);AddPoint(-a,0,a);AddPoint(0,-b,0); AddPoint(a,0,a);AddPoint(a,0,-a);AddPoint(0,-b,0); AddPoint(-a,0,a);AddPoint(a,0,a);AddPoint(0,-b,0);
+}
+
+function top_ciz_(a,aci) {
+ var x = -a*Math.sin(aci[1]*Math.PI/180)*Math.sin(aci[0]*Math.PI/180);
+ var y = -a*Math.cos(aci[1]*Math.PI/180)*Math.sin(aci[0]*Math.PI/180);
+ var z = a*Math.cos(aci[0]*Math.PI/180);
+ AddPoint(x,y,z);
+}
+
+function top_ciz(a) {
+ for(var i=0;i<500;i++) top_ciz_(a,[Math.random()*180,Math.random()*360]);
+}
+
+function Icosahedron(a) {
+ var b=a*1.33; AddPoint(0,b,-a);AddPoint(b,a,0);AddPoint(-b,a,0); AddPoint(0,b,a);AddPoint(-b,a,0);AddPoint(b,a,0); AddPoint(0,b,a);AddPoint(0,-b,a);AddPoint(-a,0,b); AddPoint(0,b,a);AddPoint(a,0,b);AddPoint(0,-b,a); AddPoint(0,b,-a);AddPoint(0,-b,-a);AddPoint(a,0,-b); AddPoint(0,b,-a);AddPoint(-a,0,-b);AddPoint(0,-b,-a); AddPoint(0,-b,a);AddPoint(b,-a,0);AddPoint(-b,-a,0); AddPoint(0,-b,-a);AddPoint(-b,-a,0);AddPoint(b,-a,0); AddPoint(-b,a,0);AddPoint(-a,0,b);AddPoint(-a,0,-b); AddPoint(-b,-a,0);AddPoint(-a,0,-b);AddPoint(-a,0,b); AddPoint(b,a,0);AddPoint(a,0,-b);AddPoint(a,0,b); AddPoint(b,-a,0);AddPoint(a,0,b);AddPoint(a,0,-b); AddPoint(0,b,a);AddPoint(-a,0,b);AddPoint(-b,a,0); AddPoint(0,b,a);AddPoint(b,a,0);AddPoint(a,0,b); AddPoint(0,b,-a);AddPoint(-b,a,0);AddPoint(-a,0,-b); AddPoint(0,b,-a);AddPoint(a,0,-b);AddPoint(b,a,0); AddPoint(0,-b,-a);AddPoint(-a,0,-b);AddPoint(-b,-a,0); AddPoint(0,-b,-a);AddPoint(b,-a,0);AddPoint(a,0,-b); AddPoint(0,-b,a);AddPoint(-b,-a,0);AddPoint(-a,0,b); AddPoint(0,-b,a);AddPoint(a,0,b);AddPoint(b,-a,0);
+}
+
+function Dodecahedron(a) {
+ var b=1.33*a, c=a/1.33; AddPoint(-c,-c,c);AddPoint(-b,0,a);AddPoint(-c,c,c);AddPoint(0,a,b);AddPoint(0,-a,b); AddPoint(0,-a,b);AddPoint(0,a,b);AddPoint(c,c,c);AddPoint(b,0,a);AddPoint(c,-c,c); AddPoint(c,-c,-c);AddPoint(b,0,-a);AddPoint(c,c,-c);AddPoint(0,a,-b);AddPoint(0,-a,-b); AddPoint(-c,c,-c);AddPoint(-b,0,-a);AddPoint(-c,-c,-c);AddPoint(0,-a,-b);AddPoint(0,a,-b); AddPoint(c,-c,-c);AddPoint(a,-b,0);AddPoint(c,-c,c);AddPoint(b,0,a);AddPoint(b,0,-a); AddPoint(b,0,-a);AddPoint(b,0,a);AddPoint(c,c,c);AddPoint(a,b,0);AddPoint(c,c,-c); AddPoint(-b,0,-a);AddPoint(-b,0,a);AddPoint(-c,-c,c);AddPoint(-a,-b,0);AddPoint(-c,-c,-c); AddPoint(-c,c,-c);AddPoint(-a,b,0);AddPoint(-c,c,c);AddPoint(-b,0,a);AddPoint(-b,0,-a); AddPoint(c,c,c);AddPoint(0,a,b);AddPoint(-c,c,c);AddPoint(-a,b,0);AddPoint(a,b,0); AddPoint(a,b,0);AddPoint(-a,b,0);AddPoint(-c,c,-c);AddPoint(0,a,-b);AddPoint(c,c,-c); AddPoint(a,-b,0);AddPoint(-a,-b,0);AddPoint(-c,-c,c);AddPoint(0,-a,b);AddPoint(c,-c,c); AddPoint(c,-c,-c);AddPoint(0,-a,-b);AddPoint(-c,-c,-c);AddPoint(-a,-b,0);AddPoint(a,-b,0);
+}
+
+function AddPoint(xx,yy,zz) {
+ model.push({x:xx,y:yy,z:zz});
+}
+
+//Tetrahedron(500);
+//Octahedron(500);
+//Icosahedron(500);
+//Dodecahedron(500);
+//top_ciz(500)
+cizim_kup(400);
+for (var deg=0;deg<20;deg++) hata.push({x:800*2*(Math.random()-0.5),y:800*2*(Math.random()-0.5),z:800*2*(Math.random()-0.5)});
+/////////////////////////////////////////////////////
+
+Ultrasonar.grafikislem.cizim.ciz = function(getirilecek) {
+ if (Ultrasonar.grafikislem.cizim.goz.aci[0] > 180) Ultrasonar.grafikislem.cizim.goz.aci[0] = 180;
+ Ultrasonar.grafikislem.cizim.goz.aci[1] %= 360;
+ if (Ultrasonar.grafikislem.cizim.goz.aci[0] < 0) Ultrasonar.grafikislem.cizim.goz.aci[0] += 180;
+ if (Ultrasonar.grafikislem.cizim.goz.aci[1] < 0) Ultrasonar.grafikislem.cizim.goz.aci[1] += 360;
+ document.all.bildiri3d.innerHTML = "Konum : <b>" + Ultrasonar.grafikislem.cizim.goz.konum[0].toFixed(2)+", "+Ultrasonar.grafikislem.cizim.goz.konum[1].toFixed(2)+", "+Ultrasonar.grafikislem.cizim.goz.konum[2].toFixed(2) + "</b> Açı : <b>" + Ultrasonar.grafikislem.cizim.goz.aci[0].toFixed(2)+", "+Ultrasonar.grafikislem.cizim.goz.aci[1].toFixed(2) + "</b>";
+ //getirilecek = eval("var getirilecek="+getirilecek+";getirilecek");
+ //for (var i=0;i<getirilecek.dizi.length;i++) getirilecek.dizi[i];
+ /////////////////////////////////////////
+ Ultrasonar.grafikislem.cizim._ciz(model,hata); // çiz
+};
+
+Ultrasonar.grafikislem.cizim._ciz = function(model_cizim,hata_cizim) {
+ Ultrasonar.grafikislem.cizim.eoid.clearRect(0,0,Ultrasonar.grafikislem.cizim.doc.width,Ultrasonar.grafikislem.cizim.doc.height);
+ // model çizim
+ Ultrasonar.grafikislem.cizim.eoid.moveTo(0,0);
+ Ultrasonar.grafikislem.cizim.eoid.beginPath();
+ for (var i=0;i<model_cizim.length;i++) {
+  var konum = [model_cizim[i].x-Ultrasonar.grafikislem.cizim.goz.konum[0],model_cizim[i].y-Ultrasonar.grafikislem.cizim.goz.konum[1],model_cizim[i].z-Ultrasonar.grafikislem.cizim.goz.konum[2]];
+  var aci = Ultrasonar.grafikislem.cizim.goz.aci;
+  var xyd = f3Dt2D(konum[0],konum[1],konum[2],aci[0],-aci[1]);
+  Ultrasonar.grafikislem.cizim.eoid.lineTo(xyd.X/xyd.R + 300, 200 - xyd.Y/xyd.R);
+ }
+ Ultrasonar.grafikislem.cizim.eoid.lineWidth = Ultrasonar.grafikislem.cizim.kalinlik;
+ Ultrasonar.grafikislem.cizim.eoid.strokeStyle = "#0000FFA0";
+ Ultrasonar.grafikislem.cizim.eoid.stroke();
+ // hata çizim
+ for (var i=0;i<hata_cizim.length;i++) {
+  Ultrasonar.grafikislem.cizim.eoid.beginPath();
+  var konum = [hata_cizim[i].x-Ultrasonar.grafikislem.cizim.goz.konum[0],hata_cizim[i].y-Ultrasonar.grafikislem.cizim.goz.konum[1],hata_cizim[i].z-Ultrasonar.grafikislem.cizim.goz.konum[2]];
+  var aci = Ultrasonar.grafikislem.cizim.goz.aci;
+  var xyd = f3Dt2D(konum[0],konum[1],konum[2],aci[0],-aci[1]);
+  Ultrasonar.grafikislem.cizim.eoid.arc(xyd.X/xyd.R + 300, 200 - xyd.Y/xyd.R,((xyd.R<0)?0:(10/xyd.R)),0,2*Math.PI,true);
+  Ultrasonar.grafikislem.cizim.eoid.lineWidth = Ultrasonar.grafikislem.cizim.kalinlik;
+  var renk = "#" + hexcev(Math.floor(xyd.R*40)) + hexcev(128-Math.floor(xyd.R*20)) + hexcev(128-Math.floor(xyd.R*20)) + hexcev(255-Math.floor(xyd.R*40));
+  Ultrasonar.grafikislem.cizim.eoid.strokeStyle = renk;
+  Ultrasonar.grafikislem.cizim.eoid.stroke();
+  Ultrasonar.grafikislem.cizim.eoid.fillStyle = renk;
+  Ultrasonar.grafikislem.cizim.eoid.fill();
+ }
+ //
+ Ultrasonar.grafikislem.cizim.eoid.beginPath();
+ var xyd = f3Dt2D(50,0,0,-Ultrasonar.grafikislem.cizim.goz.aci[0],-Ultrasonar.grafikislem.cizim.goz.aci[1]);
+ Ultrasonar.grafikislem.cizim.eoid.lineTo(xyd.X/xyd.R + 300, 200 - xyd.Y/xyd.R);
+ var xyd = f3Dt2D(200,0,0,-Ultrasonar.grafikislem.cizim.goz.aci[0],-Ultrasonar.grafikislem.cizim.goz.aci[1]);
+ Ultrasonar.grafikislem.cizim.eoid.lineTo(xyd.X/xyd.R + 300, 200 - xyd.Y/xyd.R);
+ Ultrasonar.grafikislem.cizim.eoid.lineWidth = Ultrasonar.grafikislem.cizim.kalinlik*2;
+ Ultrasonar.grafikislem.cizim.eoid.strokeStyle = "#ff000080";
+ Ultrasonar.grafikislem.cizim.eoid.stroke();
+ //
+ Ultrasonar.grafikislem.cizim.eoid.beginPath();
+ var xyd = f3Dt2D(0,50,0,-Ultrasonar.grafikislem.cizim.goz.aci[0],-Ultrasonar.grafikislem.cizim.goz.aci[1]);
+ Ultrasonar.grafikislem.cizim.eoid.lineTo(xyd.X/xyd.R + 300, 200 - xyd.Y/xyd.R);
+ var xyd = f3Dt2D(0,200,0,-Ultrasonar.grafikislem.cizim.goz.aci[0],-Ultrasonar.grafikislem.cizim.goz.aci[1]);
+ Ultrasonar.grafikislem.cizim.eoid.lineTo(xyd.X/xyd.R + 300, 200 - xyd.Y/xyd.R);
+ Ultrasonar.grafikislem.cizim.eoid.lineWidth = Ultrasonar.grafikislem.cizim.kalinlik*2;
+ Ultrasonar.grafikislem.cizim.eoid.strokeStyle = "#00ff0080";
+ Ultrasonar.grafikislem.cizim.eoid.stroke();
+ //
+ Ultrasonar.grafikislem.cizim.eoid.beginPath();
+ var xyd = f3Dt2D(0,0,50,-Ultrasonar.grafikislem.cizim.goz.aci[0],-Ultrasonar.grafikislem.cizim.goz.aci[1]);
+ Ultrasonar.grafikislem.cizim.eoid.lineTo(xyd.X/xyd.R + 300, 200 - xyd.Y/xyd.R);
+ var xyd = f3Dt2D(0,0,200,-Ultrasonar.grafikislem.cizim.goz.aci[0],-Ultrasonar.grafikislem.cizim.goz.aci[1]);
+ Ultrasonar.grafikislem.cizim.eoid.lineTo(xyd.X/xyd.R + 300, 200 - xyd.Y/xyd.R);
+ Ultrasonar.grafikislem.cizim.eoid.lineWidth = Ultrasonar.grafikislem.cizim.kalinlik*2;
+ Ultrasonar.grafikislem.cizim.eoid.strokeStyle = "#0000ff80";
+ Ultrasonar.grafikislem.cizim.eoid.stroke();
+ 
+ /*Ultrasonar.grafikislem.cizim.eoid.fillColor = "blue";
+ Ultrasonar.grafikislem.cizim.eoid.closePath();
+ Ultrasonar.grafikislem.cizim.eoid.fill();*/
+ 
+};
+
+/////////////////
+var max_uzaklik = 5000;
+function f3Dt2D(x,y,z,Qx,Qz) {
+ var Qy = 0;
+ Qx *= Math.PI/180;
+ Qz *= Math.PI/180;
+ var xRotQz=x*Math.cos(Qz)+y*Math.sin(Qz);
+ var yRotQz=y*Math.cos(Qz)-x*Math.sin(Qz);
+ //
+ var yRotQzQx=yRotQz*Math.cos(Qx)+z*Math.sin(Qx);
+ var zRotQzQx=z*Math.cos(Qx)-yRotQz*Math.sin(Qx);
+ var xRotQzQxQy=xRotQz*Math.cos(Qy)+zRotQzQx*Math.sin(Qy);
+ 
+ var yRotQzQxQy=yRotQzQx;
+ var zRotQzQxQy=xRotQz*Math.sin(Qy)-zRotQzQx*Math.cos(Qy);
+ //if (zRotQzQxQy <= 0) return false;
+ return {X:xRotQzQxQy,Y:yRotQzQx,R:(zRotQzQxQy+max_uzaklik)/1000};
+}
+
+var hex_ = "0123456789ABCDEF";
+function hexcev(oNum) {
+ if (oNum > 255) return "FF";
+ else if (oNum < 0) return "00";
+ var onum = oNum%16;
+ oNum = (oNum-onum)/16;
+ return(""+hex_[oNum]+""+hex_[onum]);
+}
+
+function gurultu__(oo) {
+ return 1;//(Math.random()-0.5+oo)/oo;
+}
+
+function geciciler__() {
+ var dalgadizi = [];
+ for (var t=0;t<1000;t++) dalgadizi.push(Math.cos(t*Math.PI/100)*gurultu__(10000)*100);
+ console.log(dalgadizi);
+ console.log(Ultrasonar.analiz.nitelik(dalgadizi));
+ Ultrasonar.grafikislem.adcveri = Ultrasonar.analiz.genlik(dalgadizi);
+ Ultrasonar.grafikislem.ciz();
+}
+</script>
+<style>
+body {
+ background-color:white;
+ color:black;
+ font-family:verdana;
+ font-size:12px;
+}
+
+.nokta {
+ width:1px;
+ height:1px;
+ position:absolute;
+}
+
+.hata {
+ color:red;
+}
+
+.tab_div {
+ display:none;
+ margin:0;
+ padding:0;
+ border:1px solid red;
+ width:100%;
+ height:100%;,
+ vertical-align:top;
+}
+
+.tab_button {
+ border-bottom:none !important;
+ bottom:0;
+}
+</style>
+</head>
+ <body>
+  <table style="width:800px;height:600px;">
+   <tr style="height:30px;">
+    <td>
+	 <button class="tab_button" onclick="Ultrasonar.arayuz.tab(0);">Kontrol</button>
+	 <button class="tab_button" onclick="Ultrasonar.arayuz.tab(1);">Ayarlar</button>
+	 <button class="tab_button" onclick="Ultrasonar.arayuz.tab(2);">2D ADC</button>
+	 <button class="tab_button" onclick="Ultrasonar.arayuz.tab(3);">3D Model</button>
+	 <button class="tab_button" onclick="Ultrasonar.arayuz.tab(4);">Bildirimler</button>
+	</td>
+   </tr>
+   <tr>
+    <td valign="top">
+	 <div class="tab_div" id="tab_0">
+	  <table>
+	   <tr>
+	    <td>
+		 <button onclick="Ultrasonar.komutlar(4);">X</button>
+		 <hr/>
+		 <font style="background-color:yellow;border:2px solid yellow;" onclick="Ultrasonar.veri_gonder([1,0,1,0+(document.all.led1.checked?1:0)+(document.all.led2.checked?2:0)+(document.all.led3.checked?4:0)]);"><input type="checkbox" id="led1" /><input type="checkbox" id="led2" /><input type="checkbox" id="led3" /></font>
+		</td>
+	   </tr>
+	  </table>
+	 </div>
+	 <div class="tab_div" id="tab_1">
+	  <table>
+	   <tr>
+	    <td>Dizi</td><td><table>
+		 <tr><td>Boyut</td><td><input type="text" id="ornekboyutu" style="width:3em;" value="4000" /></td></tr>
+		 <tr><td>Başlangıç</td><td><input type="text" id="ornekbaslangic" style="width:2em;" value="0" /></td></tr>
+		 <tr><td>Bitiş</td><td><input type="text" id="ornekbitis" style="width:2em;" value="256" /></td></tr>
+		 </table></td>
+	    <td>HV Genlik</td><td><input type="text" id="hvgenlik" style="width:2em;" value="40" /></td>
+	   </tr>
+	   <tr><td>Ham Veri</td><td><input type="checkbox" id="hamveri" /></td>
+	    <td>Darbe Çıkış</td><td><select id="d_cikiskanali">
+	     <option value="0">A</option>
+	     <option value="1">B</option>
+	    </select></td>
+	   </tr>
+	   <tr><td>Filtreleme</td><td><input type="checkbox" id="filtre" /></td>
+	    <td>Darbe Okuma</td><td><select id="d_okumakanali">
+	     <option value="0">A</option>
+	     <option value="1">B</option>
+	    </select></td>
+	   </tr>
+	   <tr><td>Rectifier</td><td><select id="rectifier">
+	    <option value="0">Full Wave Rectify</option>
+	    <option value="1">Negative Half Wave Rectify</option>
+	    <option value="2">Positive Half Wave Rectify</option>
+	    <option value="3">No Rectifier</option>
+	   </select></td>
+	    <td>Kanal Bit Kazanç</td><td><select id="k_bitkazanci">
+		 <option value="0">0 dB</option>
+		 <option value="1">6 dB</option>
+		 <option value="2">12 dB</option>
+		</select></td>
+	   </tr>
+	   <tr><td>Trigger</td><td><select id="trigger">
+	    <option value="0">EXT</option>
+	    <option value="1">INT</option></select></td>
+		<td>Ultrasonik Yöntem</td><td><select id="uyontem">
+		 <option value="0">TTU veya Dual element</option>
+		 <option value="1">Pulse-Echo</option>
+		</select></td>
+		</tr>
+	   <tr><td>Frekans</td><td><select id="frekanssec">
+	    <option value="0">100</option>
+	    <option value="1">50</option>
+	    <option value="2">25</option>
+	    <option value="3">12,5</option>
+	    <option value="4">6,25</option>
+	    <option value="5">3,13</option>
+	    <option value="6">1,56</option>
+	    <option value="7">ADC durdur</option>
+	   </select></td></tr>
+	   <tr><td>Kanal</td><td><select id="kanalsec">
+	    <option value="0">A&B</option>
+	    <option value="1">A</option>
+	    <option value="2">B</option>
+	   </select></td></tr>
+	   <tr><td>Zarf</td><td><input type="text" id="zarfkatsayi" style="width:2em;" value="100" /></td></tr>
+	   <tr><td>PRF</td><td><input type="text" id="prf" style="width:2em;" value="50" /></td></tr>
+	   <tr><td>Trig Level</td><td><input type="text" id="triglevel" style="width:2em;" value="64" /></td></tr>
+	   <tr><td>LNP Kazanç</td><td><select id="lnp">
+	    <option value="0">3 dB</option>
+	    <option value="1">12 dB</option>
+	    <option value="2">18 dB</option>
+	    <option value="3">22 dB</option>
+	    <option value="4">PDL</option>
+	    <option value="5">PDALL</option>
+	   </select></td></tr>
+	   <tr><td>VGA Kazanç</td><td><input type="text" id="vga" style="width:2em;" value="0" /></td></tr>
+	   <tr><td>Darbe F</td><td><select id="darbefrekansi">
+	    <option value="0">10 MHz</option>
+	    <option value="1">5 MHz</option>
+	    <option value="2">2 MHz</option>
+	    <option value="3">1 MHz</option>
+	    <option value="4">500 KHz</option>
+	   </select></td></tr>
+	   <tr><td>Darbe Sayısı</td><td><input type="text" id="darbesayisi" style="width:2em;" value="2" /></td></tr>
+	  </table>
+	  <button onclick="Ultrasonar.ayar_gonder();">Gönder</button><br/>
+	  <table>
+	   <tr><td></td><td>Anlık</td><td>[MM]</td><td>Sınır</td></tr>
+	   <tr><td>X</td><td><input type="text" id="anlik_deger_x" style="width:2em;" value="0" /></td><td><input type="text" id="adim_sayisi_x" style="width:2em;" value="1024" /></td><td><input type="text" id="enk_sinir_x" style="width:2em;" value="4000" /></td></tr>
+	   <tr><td>Y</td><td><input type="text" id="anlik_deger_y" style="width:2em;" value="0" /></td><td><input type="text" id="adim_sayisi_y" style="width:2em;" value="1024" /></td><td><input type="text" id="enk_sinir_y" style="width:2em;" value="4000" /></td></tr>
+	   <tr><td>Z</td><td><input type="text" id="anlik_deger_z" style="width:2em;" value="0" /></td><td><input type="text" id="adim_sayisi_z" style="width:2em;" value="1024" /></td><td><input type="text" id="enk_sinir_z" style="width:2em;" value="4000" /></td></tr>
+	   <tr><td><button onclick="Ultrasonar.enkoder.adim_sayisi_kur();">Adım sayısı gönder</button> </td></tr>
+	  </table>
+
+	 </div>
+	 <div class="tab_div" id="tab_2">
+	  <canvas width="600" height="400" id="tuval" style="width:100%;height:100%;border:1px solid gray;background-color:black;"></canvas><br/>
+	  <button onclick="Ultrasonar.veri_gonder([8,1,1,1]);">ADC İste</button>
+	 </div>
+	 <div class="tab_div" id="tab_3">
+	  <canvas width="600" height="400" id="tuval2" style="width:100%;height:100%;border:1px solid gray;background-color:white;"></canvas>
+	  <font id="bildiri3d"></font><button onclick="Ultrasonar.grafikislem.cizim.goz.konum=[0,0,0];Ultrasonar.grafikislem.cizim.goz.aci=[67,0];Ultrasonar.grafikislem.cizim.ciz();">Sıfırla</button>
+	 </div>
+	 <div class="tab_div" id="tab_4"><div valign="top" id="bildiri" style="border:5px solid black;background-color:black;color:white;width:800px;height:600px;padding:0;margin:0;overflow-y:scroll;font-family:'Lucida Console', Monaco, monospace;"></div>
+	  <button onclick="Ultrasonar.arayuz.bildiri_temizle();">Temizle</button>
+	  <button onclick="Ultrasonar.arayuz.bildiri_temizle();">Temizle</button>
+	 </div>
+	</td>
+   </tr>
+  </table>
+  <script>setTimeout("Ultrasonar.kurulum();",1000);</script>
+ </body>
+</html>
